@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Gallery - Three.js</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            /* cinematic background */
+            background: radial-gradient(ellipse at center, #232323 0%, #181818 60%, #0f0f0f 100%);
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            height: 100vh;
+            gap: 12px;
+            padding: 24px;
+        }
+
+        .canvas-container {
+            position: relative;
+            background-color: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        /* Focused / presentation mode */
+        .canvas-container.focused {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            border-radius: 0;
+            margin: 0;
+            padding: 0;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+        }
+
+        /* subtle vignette when focused */
+        .canvas-container.focused::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.25) 100%);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* placeholder for controls - actual positioning defined below */
+        .controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .control-btn {
+            background-color: rgba(12, 12, 12, 0.72);
+            color: #e6f7ff;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.12s ease, background-color 0.12s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            background-color: rgba(255,255,255,0.04);
+        }
+
+        .control-btn.active {
+            background-color: rgba(0, 140, 255, 0.95);
+            color: white;
+        }
+
+        /* controls placed top-right for cleaner presentation */
+        .controls {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 12;
+            display: flex;
+            gap: 8px;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        /* removed stage ring and strong vignette to keep canvas clean */
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* spinner */
+        .loading .spinner {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 4px solid rgba(255,255,255,0.06);
+            border-top-color: rgba(255,255,255,0.22);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* model label */
+        .model-label {
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+            background: linear-gradient(90deg, rgba(0,0,0,0.5), rgba(0,0,0,0.25));
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #ddd;
+            z-index: 10;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .model-label .dot {
+            width:10px;
+            height:10px;
+            border-radius:50%;
+            background: linear-gradient(180deg,#56ccf2,#2f80ed);
+            box-shadow:0 0 6px rgba(47,128,237,0.6);
+        }
+
+        .error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff6b6b;
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 10 canvas containers will be created by JavaScript -->
+    </div>
+
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // Configuration - easily changeable model paths
+        const modelConfigs = [
+            { name: "Ly3", path: "./models/ly3.glb" },
+            { name: "Parrot",  path: "./models/ly2.glb" },
+            { name: "Flamingo", path: "./models/ly1.glb"  },
+            { name: "Stork", path: "./models/ly4.glb"  },
+            { name: "Horse", path: "./models/ly5.glb" },
+            { name: "Horse", path: "./models/ly7.glb" },
+            // { name: "Cerberus", path: "https://threejs.org/examples/models/gltf/Cerberus/Cerberus.glb" },
+            // { name: "Fox", path: "https://threejs.org/examples/models/gltf/Fox/glTF/Fox.gltf" },
+            // { name: "Soldier", path: "https://threejs.org/examples/models/gltf/Soldier.glb" },
+            // { name: "Littlest Tokyo", path: "https://threejs.org/examples/models/gltf/LittlestTokyo.glb" },
+            // { name: "Damaged Helmet", path: "https://threejs.org/examples/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf" }
+        ];
+
+        class ModelViewer {
+            static instances = [];
+            constructor(container, modelConfig, index) {
+                this.container = container;
+                this.modelConfig = modelConfig;
+                this.index = index;
+                this.isPlaying = true;
+                this.mixer = null;
+                this.clips = [];
+                this.currentClipIndex = 0;
+
+                this.init();
+                ModelViewer.instances.push(this);
+            }
+
+            init() {
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                canvas.id = `canvas-${this.index}`;
+                this.container.appendChild(canvas);
+
+                // Create controls
+                this.createControls();
+
+                // Initialize Three.js scene
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x2a2a2a);
+
+                // Clock for animations
+                this.clock = new THREE.Clock();
+
+                // Camera (narrower FOV for nicer framing similar to Sketchfab)
+                this.camera = new THREE.PerspectiveCamera(45, this.container.clientWidth / this.container.clientHeight, 0.1, 1000);
+                this.camera.position.set(2, 2, 5);
+
+                // Renderer
+                this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+                this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                // Better PBR/IBL quality to match Sketchfab-like look
+                this.renderer.physicallyCorrectLights = true;
+                if (THREE.sRGBEncoding) this.renderer.outputEncoding = THREE.sRGBEncoding;
+                if (THREE.ACESFilmicToneMapping) {
+                    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                    this.renderer.toneMappingExposure = 1.0;
+                }
+
+                // Lights
+                this.setupLights();
+                // PMREM generator + ambient environment to improve materials
+                try {
+                    this.pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+                    const loader = new THREE.CubeTextureLoader();
+                    loader.setPath('https://threejs.org/examples/textures/cube/Bridge2/');
+                    const urls = ['posx.jpg','negx.jpg','posy.jpg','negy.jpg','posz.jpg','negz.jpg'];
+                    loader.load(urls, (cubeTex) => {
+                        const envRT = this.pmremGenerator.fromCubemap(cubeTex);
+                        this.scene.environment = envRT.texture;
+                    });
+                } catch (e) {
+                    // fail gracefully if network blocked
+                    console.warn('PMREM/CubeTexture load failed', e);
+                }
+
+                // Controls
+                this.setupControls();
+
+                // Load model
+                this.loadModel();
+
+                // Handle resize
+                window.addEventListener('resize', () => this.onWindowResize());
+
+                // Start render loop
+                this.animate();
+                
+                // Double-click to focus (presentation mode)
+                this.container.addEventListener('dblclick', () => this.toggleFocus());
+            }
+
+            createControls() {
+                const controlsDiv = document.createElement('div');
+                controlsDiv.className = 'controls';
+                // Only a single focus/zoom button for presentation
+                const focusBtn = document.createElement('button');
+                focusBtn.className = 'control-btn';
+                focusBtn.textContent = '🔍';
+                focusBtn.title = 'Zoom / Focus';
+                focusBtn.onclick = () => this.toggleFocus();
+
+                controlsDiv.appendChild(focusBtn);
+                this.container.appendChild(controlsDiv);
+
+                this.focusBtn = focusBtn;
+            }
+
+            setupLights() {
+                const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+                hemi.position.set(0, 20, 0);
+                this.scene.add(hemi);
+
+                this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.95);
+                this.directionalLight.position.set(0, 30, 10);
+                this.directionalLight.castShadow = true;
+                this.directionalLight.shadow.mapSize.width = 1024;
+                this.directionalLight.shadow.mapSize.height = 1024;
+                this.directionalLight.shadow.camera.near = 0.5;
+                this.directionalLight.shadow.camera.far = 200;
+                this.scene.add(this.directionalLight);
+
+                const fill = new THREE.PointLight(0xffffff, 0.25);
+                fill.position.set(-10, -10, -10);
+                this.scene.add(fill);
+
+                // Ground plane to receive shadows
+                const ground = new THREE.Mesh(
+                    new THREE.PlaneGeometry(40, 40),
+                    new THREE.ShadowMaterial({ opacity: 0.25 })
+                );
+                ground.rotation.x = -Math.PI / 2;
+                ground.position.y = -1.5;
+                ground.receiveShadow = true;
+                this.scene.add(ground);
+            }
+
+            setupControls() {
+                this.orbitControls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+                this.orbitControls.enableDamping = true;
+                this.orbitControls.dampingFactor = 0.05;
+                this.orbitControls.enableZoom = true;
+                this.orbitControls.enablePan = true;
+            }
+
+            async loadModel() {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'loading';
+                loadingDiv.innerHTML = `<div class="spinner"></div><div>Loading ${this.modelConfig.name}...</div>`;
+                this.container.appendChild(loadingDiv);
+
+                try {
+                    const loader = new THREE.GLTFLoader();
+
+                    loader.load(
+                        this.modelConfig.path,
+                        (gltf) => {
+                            this.onModelLoaded(gltf);
+                            this.container.removeChild(loadingDiv);
+                        },
+                        (progress) => {
+                            if (progress.total) {
+                                const percent = (progress.loaded / progress.total * 100).toFixed(1);
+                                const textDiv = loadingDiv.querySelector('div:last-child');
+                                if (textDiv) textDiv.textContent = `Loading ${this.modelConfig.name}... ${percent}%`;
+                            }
+                        },
+                        (error) => {
+                            console.error(`Error loading model ${this.modelConfig.name}:`, error);
+                            loadingDiv.className = 'error';
+                            loadingDiv.textContent = `Failed to load ${this.modelConfig.name}`;
+                        }
+                    );
+                } catch (error) {
+                    console.error(`Error loading model ${this.modelConfig.name}:`, error);
+                    loadingDiv.className = 'error';
+                    loadingDiv.textContent = `Failed to load ${this.modelConfig.name}`;
+                }
+            }
+
+            onModelLoaded(gltf) {
+                this.model = gltf.scene;
+
+                // Center the model
+                const box = new THREE.Box3().setFromObject(this.model);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+
+                // Move model to center
+                this.model.position.sub(center);
+
+                // Scale model to fit view
+                const maxDim = Math.max(size.x, size.y, size.z);
+                // compute a reasonable scale but clamp extremes so tiny/huge models behave
+                const targetScale = 2 / (maxDim || 1);
+                const clampedScale = Math.min(Math.max(targetScale, 0.25), 50);
+                this.model.scale.multiplyScalar(clampedScale);
+
+                // Enable shadows
+                this.model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                    }
+                });
+
+                this.scene.add(this.model);
+
+                // Setup animations
+                if (gltf.animations && gltf.animations.length > 0) {
+                    this.mixer = new THREE.AnimationMixer(this.model);
+                    this.clips = gltf.animations;
+
+                    // Play first animation
+                    this.playAnimation(0);
+                    // show controls for animated models
+                    if (this.playPauseBtn) this.playPauseBtn.style.display = '';
+                    if (this.nextAnimBtn) this.nextAnimBtn.style.display = '';
+                } else {
+                    // Hide animation controls if no animations
+                    if (this.playPauseBtn) this.playPauseBtn.style.display = 'none';
+                    if (this.nextAnimBtn) this.nextAnimBtn.style.display = 'none';
+                }
+
+                // Recompute bounding box/sphere after scaling to determine camera distance
+                const finalBox = new THREE.Box3().setFromObject(this.model);
+                const boundingSphere = finalBox.getBoundingSphere(new THREE.Sphere());
+                let radius = boundingSphere.radius;
+                if (!isFinite(radius) || radius <= 0) {
+                    // fallback to maxDim if bounding sphere failed
+                    radius = Math.max(maxDim, 0.5);
+                }
+
+                // Move model so its bottom sits at y = 0 (so camera above feels natural)
+                const finalBoxAfter = new THREE.Box3().setFromObject(this.model);
+                const minY = finalBoxAfter.min.y;
+                if (isFinite(minY)) {
+                    this.model.position.y -= minY;
+                }
+
+                // Calculate distance so the model fits the camera frustum.
+                // distance = radius / sin(fov/2). Add a small margin factor.
+                const fov = this.camera.fov * Math.PI / 180;
+                const distance = Math.abs(radius / Math.sin(fov / 2)) * 1.15;
+
+                // Place camera above and slightly angled so it "rays" from top-down
+                const camX = distance * 0.45;
+                const camY = Math.max(distance * 0.9, radius * 1.2 + 0.5);
+                const camZ = distance * 0.45;
+                this.camera.position.set(camX, camY, camZ);
+                this.camera.up.set(0, 1, 0);
+                this.camera.near = Math.max(0.01, distance / 200);
+                this.camera.far = Math.max(1000, distance * 200);
+                this.camera.updateProjectionMatrix();
+
+                // Point directional light more from above to match requested lighting
+                if (this.directionalLight) {
+                    this.directionalLight.position.set(0, camY + 10, 10);
+                    this.directionalLight.intensity = 1.05;
+                }
+
+                // Ensure controls target is the model base center (y ~ radius*0.2)
+                this.orbitControls.target.set(0, radius * 0.15, 0);
+                // Limit polar so camera doesn't flip under model by default, but allow some freedom
+                this.orbitControls.minPolarAngle = 0.2; // radians (~11deg)
+                this.orbitControls.maxPolarAngle = Math.PI * 0.9; // prevent full upside-down by default
+                this.orbitControls.update();
+
+                // Improve materials to look more like Sketchfab (apply env intensity / sRGB fix)
+                this.model.traverse((child) => {
+                    if (child.isMesh && child.material) {
+                        const mats = Array.isArray(child.material) ? child.material : [child.material];
+                        mats.forEach((mat) => {
+                            // ensure textures are treated as sRGB when appropriate
+                            if (mat.map) mat.map.encoding = THREE.sRGBEncoding;
+                            if (mat.emissiveMap) mat.emissiveMap.encoding = THREE.sRGBEncoding;
+                            // Encourage PBR reflections if environment present
+                            if (mat.envMap === null && this.scene.environment) {
+                                mat.envMap = this.scene.environment;
+                            }
+                            if (mat.envMapIntensity === undefined) mat.envMapIntensity = 1.0;
+                            mat.needsUpdate = true;
+                        });
+                    }
+                });
+                
+                // no floor ring overlay appended (kept canvas clean)
+                
+                // Add model label
+                const label = document.createElement('div');
+                label.className = 'model-label';
+                label.innerHTML = `<div class="dot"></div><div>${this.modelConfig.name}</div>`;
+                this.container.appendChild(label);
+            }
+
+            playAnimation(index) {
+                if (this.mixer && this.clips[index]) {
+                    // Stop current animation
+                    if (this.currentAction) {
+                        this.currentAction.stop();
+                    }
+
+                    // Play new animation
+                    this.currentAction = this.mixer.clipAction(this.clips[index]);
+                    this.currentAction.play();
+                    this.currentClipIndex = index;
+                }
+            }
+
+            toggleAnimation() {
+                if (!this.mixer) return;
+
+                if (this.isPlaying) {
+                    this.mixer.stopAllAction();
+                    this.playPauseBtn.textContent = '▶️';
+                    this.playPauseBtn.title = 'Play Animation';
+                    this.playPauseBtn.classList.remove('active');
+                } else {
+                    this.playAnimation(this.currentClipIndex);
+                    this.playPauseBtn.textContent = '⏸️';
+                    this.playPauseBtn.title = 'Pause Animation';
+                    this.playPauseBtn.classList.add('active');
+                }
+
+                this.isPlaying = !this.isPlaying;
+            }
+
+            nextAnimation() {
+                if (!this.mixer || this.clips.length <= 1) return;
+
+                const nextIndex = (this.currentClipIndex + 1) % this.clips.length;
+                this.playAnimation(nextIndex);
+            }
+
+            // Toggle focused / presentation mode
+            toggleFocus() {
+                const wasFocused = this.container.classList.contains('focused');
+                // Unfocus all first
+                ModelViewer.instances.forEach((v) => {
+                    if (v !== this) {
+                        v.container.classList.remove('focused');
+                        v.orbitControls.enabled = false;
+                        // pause others
+                        v._storedPlaying = v.isPlaying;
+                        v.isPlaying = false;
+                    }
+                });
+
+                if (!wasFocused) {
+                    this.container.classList.add('focused');
+                    // enable this
+                    this.orbitControls.enabled = true;
+                    this.isPlaying = true;
+                    // Resize renderer to full screen
+                    this.onWindowResize();
+                    // increase pixel ratio for focused view
+                    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                } else {
+                    this.container.classList.remove('focused');
+                    // restore others
+                    ModelViewer.instances.forEach((v) => {
+                        v.orbitControls.enabled = true;
+                        if (typeof v._storedPlaying !== 'undefined') {
+                            v.isPlaying = v._storedPlaying;
+                            delete v._storedPlaying;
+                        }
+                        v.onWindowResize();
+                    });
+                    this.onWindowResize();
+                }
+            }
+
+            onWindowResize() {
+                this.camera.aspect = this.container.clientWidth / this.container.clientHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+            }
+
+            animate = () => {
+                requestAnimationFrame(this.animate);
+                const delta = this.clock ? this.clock.getDelta() : 0.016;
+
+                if (this.mixer && this.isPlaying) {
+                    this.mixer.update(delta);
+                }
+
+                this.orbitControls.update();
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+
+        // Initialize all viewers when page loads
+        window.addEventListener('load', () => {
+            const container = document.querySelector('.container');
+
+            modelConfigs.forEach((config, index) => {
+                const canvasContainer = document.createElement('div');
+                canvasContainer.className = 'canvas-container';
+                container.appendChild(canvasContainer);
+
+                new ModelViewer(canvasContainer, config, index);
+            });
+        });
+    </script>
+</body>
+</html>
