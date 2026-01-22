@@ -1,93 +1,87 @@
-# 3D Model Gallery - Three.js
+# 3D Model Gallery - Sáng Tạo Nhóm 5
 
-Một trang web đơn giản trưng bày 10 model 3D sử dụng Three.js với giao diện tối (dark mode).
+Một trang web trưng bày bộ sưu tập các mô hình 3D tương tác được tạo bởi **Nhóm 5** - môn học **HCM202** - Lớp **GD1817**.
 
-## Tính năng
+## 📍 Truy cập trang web
 
-- ✅ 10 canvas 3D hiển thị song song
-- ✅ Mỗi canvas chứa 1 model 3D riêng biệt (.glb/.gltf)
-- ✅ Sắp xếp dạng grid 2x5 (2 hàng, 5 cột)
-- ✅ Camera và ánh sáng riêng cho từng canvas
-- ✅ OrbitControls để xoay, zoom, pan model
-- ✅ Tự động phát animation nếu model có
-- ✅ Nút Play/Pause và chuyển animation cho từng canvas
-- ✅ Giao diện tối (dark mode), nền xám đậm
-- ✅ Viền mỏng giữa các canvas
-- ✅ Performance tối ưu cho 10 model cùng lúc
+🔗 **https://hcm-202-seven.vercel.app/**
 
-## Cách chạy
+Bạn có thể truy cập trang web trực tiếp từ đường link trên để xem toàn bộ các mô hình 3D.
 
-### Phương pháp 1: Sử dụng Python HTTP Server (Khuyến nghị)
+## ✨ Tính năng chính
 
-```bash
-# Chạy server trên port 8000
-python -m http.server 8000
+- 📊 Hiển thị 10 mô hình 3D sản phẩm sáng tạo của nhóm
+- 🎥 Mỗi mô hình có camera, ánh sáng và điều khiển riêng
+- 🔄 Hỗ trợ animation
+- 🎯 Điều khiển xoay, zoom và pan mô hình bằng chuột
 
-# Hoặc port khác
-python -m http.server 8080
+## 🎮 Cách sử dụng
+
+### Điều khiển mô hình 3D
+
+- **Xoay mô hình**: Click và kéo chuột
+- **Zoom in/out**: Cuộn bánh xe chuột (scroll)
+- **Pan camera**: Click chuột phải và kéo
+- **Xem toàn màn hình**: Nhấp vào nút **⛶** trên mỗi mô hình
+
+## 🛠️ Công nghệ sử dụng
+
+- **Three.js** - Thư viện 3D JavaScript
+- **GLTFLoader** - Tải mô hình 3D (.glb/.gltf)
+- **OrbitControls** - Điều khiển camera 3D
+- **Vercel** - Hosting & deployment
+
+## 📁 Cấu trúc dự án
+
+```
+mln131/
+├── index.html          # Tệp HTML chính
+├── README.md           # Tài liệu này
+└── models/             # Thư mục chứa các mô hình 3D
+    ├── 1.glb
+    ├── ly2.glb
+    ├── ly3.glb
+    ├── ly4.glb
+    ├── ly5.glb
+    ├── ly7.glb
+    ├── ly9.glb
+    ├── ly10.glb
+    ├── ly11.glb
+    └── ly12.glb
 ```
 
-Sau đó mở trình duyệt và truy cập: `http://localhost:8000` hoặc `http://localhost:8080`
+## 🚀 Cách chạy locally
 
-### Phương pháp 2: Mở trực tiếp file HTML
+### Cách 1: Python HTTP Server (Khuyến nghị)
 
-Double-click vào file `index.html` để mở trong trình duyệt (có thể bị hạn chế CORS với file local).
+```bash
+cd mln131
+python -m http.server 8000
+```
 
-### Phương pháp 3: Sử dụng Node.js
+Sau đó mở trình duyệt và truy cập: `http://localhost:8000`
+
+### Cách 2: Node.js
 
 ```bash
 npx http-server -p 8000
 ```
 
-## Thay đổi model
+### Cách 3: Mở trực tiếp
 
-Để thay đổi các model 3D, chỉnh sửa array `modelConfigs` trong file `index.html`:
+Double-click file `index.html` (có thể bị hạn chế CORS với file local)
 
-```javascript
-const modelConfigs = [
-    { name: "Tên Model 1", path: "đường/dẫn/đến/model1.glb" },
-    { name: "Tên Model 2", path: "đường/dẫn/đến/model2.glb" },
-    // ... thêm 8 model nữa
-];
-```
+## 🎓 Thông tin môn học
 
-## Model mẫu hiện tại
+- **Môn học**: HCM202
+- **Lớp**: GD1817
+- **Nhóm**: 5
+- **Loại bài tập**: Sáng tạo web 3D tương tác
 
-1. Robot - Robot biểu cảm
-2. Parrot - Vẹt
-3. Flamingo - Hồng hạc
-4. Stork - Cò
-5. Horse - Ngựa
-6. Cerberus - Chó 3 đầu
-7. Fox - Cáo
-8. Soldier - Lính
-9. Littlest Tokyo - Thành phố thu nhỏ
-10. Damaged Helmet - Mũ bảo hiểm bị hỏng
+## 📝 Ghi chú
 
-## Điều khiển
+Đây là sản phẩm sáng tạo của nhóm trong quá trình học tập. Trang web được thiết kế để trưng bày các mô hình 3D sản phẩm snags tạo của nhóm trong quá trình học tập.
 
-- **OrbitControls**: Click và kéo để xoay, scroll để zoom, right-click để pan
-- **Play/Pause**: Nút ⏸️/▶️ để dừng/bật animation
-- **Next Animation**: Nút ⏭️ để chuyển sang animation tiếp theo (nếu model có nhiều animation)
+---
 
-## Performance
-
-- Pixel ratio giới hạn tối đa 2 để tiết kiệm tài nguyên
-- Shadow mapping tối ưu
-- Animation mixer chạy ở 60fps cố định
-- Damping controls để mượt mà
-
-## Browser Support
-
-- Chrome 80+
-- Firefox 75+
-- Safari 13+
-- Edge 80+
-
-## Dependencies
-
-- Three.js r128 (CDN)
-- GLTFLoader
-- OrbitControls
-
-Không cần cài đặt gì thêm, tất cả dependencies được load từ CDN.
+**Last Updated**: January 23, 2026
