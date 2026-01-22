@@ -18,15 +18,40 @@
             color: #ffffff;
             overflow: hidden;
             height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(90deg, #1a1a1a 0%, #2d1b3d 50%, #1a1a1a 100%);
+            padding: 20px 24px;
+            border-bottom: 2px solid #ff1493;
+            box-shadow: 0 4px 12px rgba(255, 20, 147, 0.3);
+            flex-shrink: 0;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(255, 20, 147, 0.6);
+            letter-spacing: 2px;
+        }
+
+        header p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            color: #ff1493;
         }
 
         .container {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             grid-template-rows: repeat(2, 1fr);
-            height: 100vh;
+            flex: 1;
             gap: 12px;
             padding: 24px;
+            overflow: hidden;
         }
 
         .canvas-container {
@@ -73,31 +98,33 @@
         }
 
         .control-btn {
-            background-color: rgba(12, 12, 12, 0.72);
-            color: #e6f7ff;
-            border: 1px solid rgba(255,255,255,0.06);
+            background-color: rgba(255, 20, 147, 0.8);
+            color: #ffffff;
+            border: 2px solid rgba(255, 20, 147, 0.9);
             border-radius: 50%;
             width: 36px;
             height: 36px;
             padding: 0;
             font-size: 16px;
             cursor: pointer;
-            transition: transform 0.12s ease, background-color 0.12s;
+            transition: transform 0.12s ease, background-color 0.12s, box-shadow 0.12s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            box-shadow: 0 2px 12px rgba(255, 20, 147, 0.5);
         }
 
         .control-btn:hover {
             transform: translateY(-2px);
-            background-color: rgba(255,255,255,0.04);
+            background-color: rgba(255, 20, 147, 1);
+            box-shadow: 0 4px 16px rgba(255, 20, 147, 0.8);
         }
 
         .control-btn.active {
-            background-color: rgba(0, 140, 255, 0.95);
+            background-color: rgba(255, 20, 147, 1);
             color: white;
+            box-shadow: 0 4px 16px rgba(255, 20, 147, 0.8);
         }
 
         /* controls placed top-right for cleaner presentation */
@@ -175,6 +202,10 @@
     </style>
 </head>
 <body>
+    <header>
+        <h1>HCM202 - GD1817</h1>
+        <p>Double click to interact with models</p>
+    </header>
     <div class="container">
         <!-- 10 canvas containers will be created by JavaScript -->
     </div>
@@ -185,18 +216,18 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
-        // Configuration - easily changeable model paths
+        // Configuration for models - thay đổi đường dẫn model ở đây
         const modelConfigs = [
-            { name: "Ly1", path: "./models/ly3.glb" },
-            { name: "Ly2",  path: "./models/ly2.glb" },
-            { name: "Ly3", path: "./models/ly1.glb"  },
-            { name: "Ly4", path: "./models/ly4.glb"  },
-            { name: "Ly5", path: "./models/ly5.glb" },
-            { name: "Ly6", path: "./models/ly7.glb" },
-            { name: "Ly7", path: "./models/ly9.glb" },
-            { name: "Ly8", path: "./models/ly10.glb" },
-            { name: "Ly9", path: "./models/ly11.glb" },
-            { name: "Ly10", path: "./models/ly12.glb" },
+            { name: "1", path: "./models/1.glb" },
+            { name: "2",  path: "./models/ly2.glb" },
+            { name: "3", path: "./models/ly3.glb"  },
+            { name: "4", path: "./models/ly4.glb"  },
+            { name: "5", path: "./models/ly5.glb" },
+            { name: "6", path: "./models/ly7.glb" },
+            { name: "7", path: "./models/ly9.glb" },
+            { name: "8", path: "./models/ly10.glb" },
+            { name: "9", path: "./models/ly11.glb" },
+            { name: "10", path: "./models/ly12.glb" },
             // { name: "Cerberus", path: "https://threejs.org/examples/models/gltf/Cerberus/Cerberus.glb" },
             // { name: "Fox", path: "https://threejs.org/examples/models/gltf/Fox/glTF/Fox.gltf" },
             // { name: "Soldier", path: "https://threejs.org/examples/models/gltf/Soldier.glb" },
@@ -292,7 +323,7 @@
                 // Only a single focus/zoom button for presentation
                 const focusBtn = document.createElement('button');
                 focusBtn.className = 'control-btn';
-                focusBtn.textContent = '🔍';
+                focusBtn.textContent = '⛶';
                 focusBtn.title = 'Zoom / Focus';
                 focusBtn.onclick = () => this.toggleFocus();
 
