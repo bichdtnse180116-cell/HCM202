@@ -1,6 +1,6 @@
-# 3D Model Gallery - Sáng Tạo Nhóm 5
+# 3D Model Gallery
 
-Một trang web trưng bày bộ sưu tập các mô hình 3D tương tác được tạo bởi **Nhóm 5** - môn học **HCM202** - Lớp **GD1817**.
+Một trang web trưng bày bộ sưu tập các mô hình 3D tương tác được tạo bởi **Nhóm 4** - môn học **VNR202** - Lớp **GD1817**.
 
 ## 📍 Truy cập trang web
 
@@ -73,15 +73,14 @@ Double-click file `index.html` (có thể bị hạn chế CORS với file local
 
 ## 🎓 Thông tin môn học
 
-- **Môn học**: HCM202
+- **Môn học**: VNR202
 - **Lớp**: GD1817
-- **Nhóm**: 5
-- **Loại bài tập**: Sáng tạo web 3D tương tác
+- **Nhóm**: 4
+- **Loại bài tập**: Sản phẩm sáng tạo web 3D tương tác
 
 ## 📝 Ghi chú
 
-Đây là sản phẩm sáng tạo của nhóm trong quá trình học tập. Trang web được thiết kế để trưng bày các mô hình 3D sản phẩm snags tạo của nhóm trong quá trình học tập.
+Đây là sản phẩm sáng tạo của nhóm trong quá trình học tập. Trang web được thiết kế để trưng bày các mô hình 3D sản phẩm sáng tạo của nhóm trong quá trình học tập.
 
 ---
 
-**Last Updated**: January 23, 2026
